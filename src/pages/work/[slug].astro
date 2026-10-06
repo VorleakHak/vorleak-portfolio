@@ -1,0 +1,208 @@
+---
+import Base from '../../layouts/Base.astro';
+import Blocks from '../../components/Blocks.astro';
+import Media from '../../components/Media.astro';
+import Txt from '../../components/Txt.astro';
+import { caseStudies, type CaseStudy } from '../../content';
+import { url, publicFileExists } from '../../lib/utils';
+
+export function getStaticPaths() {
+  return caseStudies.map((study, i) => ({
+    params: { slug: study.slug },
+    props: { study, next: caseStudies[(i + 1) % caseStudies.length] },
+  }));
+}
+
+interface Props { study: CaseStudy; next: CaseStudy }
+const { study, next } = Astro.props;
+---
+<Base title={study.shortTitle === study.title ? study.title : `${study.title} (${study.shortTitle})`} description={study.oneLiner}>
+  <!-- Decorative reading-progress bar (position is exposed to assistive tech via the tracker's aria-current) -->
+  <div slot="before-header" class="progress" aria-hidden="true"><div class="progress__fill"></div></div>
+
+  <article class="study">
+    <!-- 1. Title + one-liner -->
+    <header class="study__head paper-grid">
+      <div class="container">
+        <a class="back" href={`${url('/')}#work`}>← All work</a>
+        <p class="study__org fade-up">
+          {study.shortTitle !== study.title && study.shortTitle}
+          {study.badge && <span class="badge">{study.badge}</span>}
+        </p>
+        <h1 class="fade-up delay-1">{study.title}</h1>
+        <p class="study__one fade-up delay-2">{study.oneLiner}</p>
+
+        <!-- 2. Snapshot -->
+        <section class="snapshot fade-up delay-3" aria-labelledby="snapshot-title">
+          <h2 id="snapshot-title" class="visually-hidden">Project snapshot</h2>
+          <dl>
+            {study.snapshot.map((row) => (
+              <div class="snapshot__row">
+                <dt>{row.label}</dt>
+                <dd><Txt text={row.value} /></dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      </div>
+    </header>
+
+    {publicFileExists(study.cover.src) && (
+      <div class="container">
+        <div class="study__cover">
+          <Media {...study.cover} ratio={study.cover.ratio ?? '16 / 8'} eager />
+        </div>
+      </div>
+    )}
+
+    <div class="container study__layout">
+      <!-- Lesson-path style section tracker (desktop) -->
+      <nav class="tracker" aria-label="On this page">
+        <p class="tracker__title" aria-hidden="true">Contents</p>
+        <ol>
+          {study.sections.map((s) => (
+            <li>
+              <a href={`#${s.id}`} data-track={s.id}>
+                <span>{s.heading}</span>
+              </a>
+            </li>
+          ))}
+        </ol>
+      </nav>
+
+      <!-- 3–8. Sections -->
+      <div class="study__body">
+        {study.sections.map((s, i) => (
+          <section id={s.id} class="study__section" aria-labelledby={`${s.id}-h`}>
+            <p class="study__step" aria-hidden="true">{String(i + 1).padStart(2, '0')} / {study.sections.length.toString().padStart(2, '0')}</p>
+            <h2 id={`${s.id}-h`}>{s.heading}</h2>
+            <Blocks blocks={s.blocks} />
+          </section>
+        ))}
+
+        <a class="next" href={url(`/work/${next.slug}`)}>
+          <span class="next__label">Next case study</span>
+          <span class="next__title">{next.title} <span class="arrow" aria-hidden="true">→</span></span>
+        </a>
+      </div>
+    </div>
+  </article>
+</Base>
+
+<script>
+  // Reading progress bar + "lesson path" tracker. Pure enhancement: the page works without JS.
+  const fill = document.querySelector<HTMLElement>('.progress__fill');
+  const update = () => {
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = max > 0 ? Math.min(100, Math.max(0, (window.scrollY / max) * 100)) : 0;
+    if (fill) fill.style.transform = `scaleX(${pct / 100})`;
+  };
+  addEventListener('scroll', update, { passive: true });
+  addEventListener('resize', update);
+  update();
+
+  const links = [...document.querySelectorAll<HTMLAnchorElement>('[data-track]')];
+  const sections = links
+    .map((a) => document.getElementById(a.dataset.track!))
+    .filter((el): el is HTMLElement => !!el);
+
+  const mark = () => {
+    const line = window.innerHeight * 0.35;
+    let current = -1;
+    sections.forEach((s, i) => { if (s.getBoundingClientRect().top <= line) current = i; });
+    const atEnd = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
+    if (atEnd) current = sections.length - 1;
+    links.forEach((a, i) => {
+      a.classList.toggle('is-done', i < current);
+      a.classList.toggle('is-current', i === current);
+      if (i === current) a.setAttribute('aria-current', 'location');
+      else a.removeAttribute('aria-current');
+    });
+  };
+  addEventListener('scroll', mark, { passive: true });
+  mark();
+</script>
+
+<style>
+  /* ---------- Progress bar ---------- */
+  .progress { position: fixed; inset: 0 0 auto 0; height: 3px; z-index: 60; }
+  .progress__fill {
+    height: 100%; background: var(--coral);
+    transform-origin: 0 50%; transform: scaleX(0);
+  }
+
+  /* ---------- Header ---------- */
+  .study__head { padding: 1.5rem 0 3.5rem; border-bottom: 1px solid rgba(29, 43, 52, 0.12); }
+  .back {
+    display: inline-flex; align-items: center; min-height: 44px; margin-bottom: 2.5rem;
+    font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--muted); text-decoration: none;
+  }
+  .back:hover { color: var(--ink); }
+  .study__org {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem;
+    font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--coral-deep);
+  }
+  .study__org:empty { display: none; }
+  .badge { background: var(--ochre); color: var(--ink); border-radius: 999px; padding: 0.15rem 0.6rem; letter-spacing: 0.1em; }
+  .study__head h1 { font-size: clamp(3.2rem, 9vw, 7rem); line-height: 0.9; letter-spacing: -0.035em; max-width: 14ch; margin-bottom: 0.35em; }
+  .study__one { font-size: clamp(1.1rem, 2.2vw, 1.35rem); color: var(--muted); max-width: 40rem; margin-bottom: 3rem; }
+
+  .snapshot {
+    background: var(--card); border: 1px solid rgba(29, 43, 52, 0.15); border-radius: var(--r);
+    padding: 0.25rem 1.5rem;
+  }
+  .snapshot dl { margin: 0; display: grid; column-gap: 2.5rem; }
+  @media (min-width: 640px) { .snapshot dl { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1000px) { .snapshot dl { grid-template-columns: repeat(4, 1fr); } }
+  .snapshot__row { padding: 1.1rem 0; border-bottom: 1px solid rgba(29, 43, 52, 0.1); }
+  dt { font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted); margin-bottom: 0.3rem; }
+  dd { margin: 0; font-size: 0.95rem; line-height: 1.55; }
+
+  .study__cover { margin-top: clamp(2.5rem, 5vw, 3.5rem); }
+
+  /* ---------- Body layout ---------- */
+  .study__layout { display: grid; gap: 2rem; padding-block: clamp(3rem, 7vw, 5rem) clamp(4rem, 9vw, 7rem); }
+  @media (min-width: 1000px) { .study__layout { grid-template-columns: 210px minmax(0, 1fr); gap: 5rem; } }
+  .study__body { max-width: 44rem; min-width: 0; }
+  .study__section { padding-top: 4rem; }
+  .study__section:first-child { padding-top: 0; }
+  .study__section h2 { font-size: clamp(2.4rem, 4.5vw, 3.4rem); margin-bottom: 0.55em; }
+  .study__step {
+    font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.16em; color: var(--coral-deep);
+    margin: 0 0 0.9rem; padding-top: 0.9rem; border-top: 1px solid var(--ink); display: inline-block; min-width: 4.5rem;
+  }
+
+  /* ---------- Tracker ---------- */
+  .tracker { display: none; }
+  @media (min-width: 1000px) {
+    .tracker { display: block; position: sticky; top: 6.5rem; align-self: start; }
+  }
+  .tracker__title { font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.16em; color: var(--muted); margin-bottom: 0.9rem; }
+  .tracker ol { list-style: none; margin: 0; padding: 0; border-left: 1px solid rgba(29, 43, 52, 0.18); }
+  .tracker a {
+    display: flex; gap: 0.6rem; align-items: center; justify-content: space-between;
+    padding: 0.4rem 0 0.4rem 1rem; margin-left: -1px;
+    border-left: 2px solid transparent;
+    color: var(--muted); text-decoration: none; font-size: 0.88rem; line-height: 1.35;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .tracker a:hover { color: var(--ink); }
+  .tracker a.is-done { color: var(--ink); }
+  .tracker a.is-done::after { content: '✓'; font-size: 0.75rem; color: var(--teal); }
+  .tracker a.is-current { color: var(--ink); font-weight: 600; border-left-color: var(--coral); }
+
+  /* ---------- Next ---------- */
+  .next {
+    display: flex; flex-direction: column; gap: 0.6rem;
+    margin-top: 5rem; padding: 2rem 2rem 2.25rem;
+    background: var(--ink); color: var(--bg); border-radius: var(--r);
+    text-decoration: none;
+    transition: box-shadow 0.3s var(--ease), transform 0.3s var(--ease);
+  }
+  .next__label { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ochre); }
+  .next__title { font-family: var(--font-display); font-size: clamp(2rem, 4vw, 2.8rem); line-height: 1.05; }
+  .next .arrow { display: inline-block; color: var(--ochre); transition: transform 0.3s var(--ease); }
+  .next:hover { color: var(--bg); transform: translate(-2px, -2px); box-shadow: 8px 8px 0 rgba(218, 95, 68, 0.35); }
+  .next:hover .arrow { transform: translateX(6px); }
+</style>

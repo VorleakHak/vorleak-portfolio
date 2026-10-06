@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" role="img">
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#1d2b34" stroke-opacity="0.06" stroke-width="1"/>
+    </pattern>
+    <radialGradient id="glow" cx="50%" cy="64%" r="55%">
+      <stop offset="0" stop-color="#ebc766" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#ebc766" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1600" height="1000" fill="#f3efe7"/>
+  <rect width="1600" height="1000" fill="url(#grid)"/>
+  <rect width="1600" height="1000" fill="url(#glow)"/>
+
+  <!-- Expanded (remapped) field of view: ~170° -->
+  <path d="M800 660 L322 618 A480 480 0 0 1 1278 618 Z" fill="#ebc766" fill-opacity="0.55" stroke="#c9a24a" stroke-width="2"/>
+  <!-- Normal field of view: ~110° -->
+  <path d="M800 660 L407 385 A480 480 0 0 1 1193 385 Z" fill="#3c726e" fill-opacity="0.85"/>
+
+  <!-- Dashed arcs showing the expansion on each side -->
+  <path d="M380 450 A440 440 0 0 0 372 600" fill="none" stroke="#1d2b34" stroke-width="3" stroke-dasharray="2 12" stroke-linecap="round"/>
+  <path d="M1220 450 A440 440 0 0 1 1228 600" fill="none" stroke="#1d2b34" stroke-width="3" stroke-dasharray="2 12" stroke-linecap="round"/>
+
+  <!-- Head, seen from above -->
+  <circle cx="800" cy="660" r="54" fill="#1d2b34"/>
+  <path d="M786 610 L800 588 L814 610 Z" fill="#1d2b34"/>
+  <rect x="738" y="642" width="124" height="34" rx="12" fill="#30424f"/>
+
+  <!-- Labels -->
+  <text x="800" y="300" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="46" fill="#f8f6f1">Normal view</text>
+  <text x="800" y="120" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-style="italic" font-size="64" fill="#1d2b34">+50–60% effective field of view</text>
+
+  <g font-family="Menlo, 'Courier New', monospace" font-size="24" letter-spacing="3" fill="#52626e">
+    <rect x="470" y="842" width="26" height="26" fill="#3c726e"/>
+    <text x="510" y="864">HEAD-SYNCED VIEW</text>
+    <rect x="860" y="842" width="26" height="26" fill="#ebc766" stroke="#c9a24a" stroke-width="2"/>
+    <text x="900" y="864">REMAPPED POV</text>
+  </g>
+</svg>

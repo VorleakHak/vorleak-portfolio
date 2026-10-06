@@ -1,0 +1,267 @@
+---
+// Renders a case-study section's content blocks (see the Block type in content.ts).
+import type { Block } from '../content';
+import Txt from './Txt.astro';
+import Media from './Media.astro';
+import { isTodo, url } from '../lib/utils';
+
+interface Props { blocks: Block[] }
+const { blocks } = Astro.props;
+const isDev = import.meta.env.DEV;
+---
+{blocks.map((b) => {
+  switch (b.type) {
+    case 'p':
+      return <p><Txt text={b.text} /></p>;
+
+    case 'list': {
+      const Tag = b.ordered ? 'ol' : 'ul';
+      return (
+        <Tag class:list={['list', { 'list--steps': b.ordered }]}>
+          {b.items.map((i) => <li><Txt text={i} /></li>)}
+        </Tag>
+      );
+    }
+
+    case 'callout':
+      return (
+        <div role="note" class:list={['callout', `callout--${b.tone ?? 'insight'}`, { 'callout--quote': (b.tone ?? 'insight') === 'insight' && b.text && !b.items }]}>
+          <p class="callout__title">{b.title}</p>
+          {b.text && <p><Txt text={b.text} /></p>}
+          {b.items && <ul>{b.items.map((i) => <li><Txt text={i} /></li>)}</ul>}
+        </div>
+      );
+
+    case 'cards':
+      return (
+        <ul class="mini-cards">
+          {b.items.map((c, n) => (
+            <li class="mini-card">
+              <span class="mini-card__num" aria-hidden="true">{String(n + 1).padStart(2, '0')}</span>
+              <h3>{c.title}</h3>
+              <p><Txt text={c.text} /></p>
+            </li>
+          ))}
+        </ul>
+      );
+
+    case 'figures':
+      return (
+        <div class:list={['figures', { 'figures--grid': b.items.length > 1 }]}>
+          {b.items.map((m) => (
+            <figure>
+              <Media {...m} />
+              <figcaption>{m.label}</figcaption>
+            </figure>
+          ))}
+        </div>
+      );
+
+    case 'todo':
+      return <p><span class="todo">{b.text}</span></p>;
+
+    case 'link':
+      return isTodo(b.href) ? (
+        <p><span class="btn btn--disabled" aria-disabled="true">{b.label} →</span> <span class="todo">{b.href}</span></p>
+      ) : (
+        <p>
+          <a class="btn btn--primary" href={url(b.href)} target="_blank" rel="noopener">
+            {b.label} <span aria-hidden="true">→</span><span class="visually-hidden"> (opens in a new tab)</span>
+          </a>
+        </p>
+      );
+
+    case 'walkthrough':
+      return (
+        <div class="walkthrough">
+          <p class="walkthrough__hint" aria-hidden="true">Swipe to walk through the flow →</p>
+          <ol class="walkthrough__list" tabindex="0" aria-label="Intake flow, step by step. Scrolls horizontally on small screens.">
+            {b.items.map((s, n) => (
+              <li class="walkthrough__step">
+                <Media {...s} frame={s.frame ?? 'tablet'} ratio={s.ratio ?? '4 / 3'} />
+                <div class="walkthrough__caption">
+                  <p class="walkthrough__num">Step {n + 1} of {b.items.length}</p>
+                  <h3>{s.label}</h3>
+                  <p><Txt text={s.caption} /></p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      );
+
+    case 'stats':
+      return (
+        <dl class="stats">
+          {b.items.map((it) => (
+            <div class="stat">
+              <dt class="stat__label">{it.label}</dt>
+              <dd class="stat__value">{it.value}</dd>
+            </div>
+          ))}
+        </dl>
+      );
+
+    case 'table':
+      return (
+        <div class="table-wrap" role="region" aria-label={b.caption} tabindex="0">
+          <table class="table">
+            <caption>{b.caption}</caption>
+            <thead><tr>{b.headers.map((h) => <th scope="col">{h}</th>)}</tr></thead>
+            <tbody>
+              {b.rows.map((r) => (
+                <tr>{r.map((c, i) => (i === 0 ? <th scope="row">{c}</th> : <td>{c}</td>))}</tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+
+    case 'reflection':
+      return (
+        <div class="reflection">
+          <p class="reflection__title">Reflection coming soon</p>
+          {isDev && (
+            <div class="reflection__prompts">
+              <p><strong>Prompts for Vorleak</strong> (only visible in local dev):</p>
+              <ul>{b.prompts.map((q) => <li>{q}</li>)}</ul>
+            </div>
+          )}
+        </div>
+      );
+  }
+})}
+
+<style>
+  .list { padding-left: 1.15rem; margin: 0 0 1.5rem; }
+  .list li { margin-bottom: 0.55rem; padding-left: 0.3rem; }
+  .list li::marker { color: var(--coral); }
+
+  /* Ordered lists → a numbered index, like the rounds of a game */
+  .list--steps { list-style: none; padding: 0; counter-reset: step; border-top: 1px solid rgba(29, 43, 52, 0.18); }
+  .list--steps li {
+    counter-increment: step;
+    display: flex; align-items: baseline; gap: 1.25rem;
+    padding: 0.9rem 0; margin: 0;
+    border-bottom: 1px solid rgba(29, 43, 52, 0.18);
+    font-weight: 500;
+    transition: padding-left 0.3s var(--ease);
+  }
+  .list--steps li:hover { padding-left: 0.5rem; }
+  .list--steps li::before {
+    content: counter(step, decimal-leading-zero);
+    flex: none; min-width: 2rem;
+    font-family: var(--font-display); font-size: 1.6rem; line-height: 1; color: var(--coral);
+  }
+
+  .callout {
+    margin: 2.25rem 0;
+    padding: 1.4rem 1.6rem;
+    background: var(--card);
+    border: 1px solid rgba(29, 43, 52, 0.15);
+    border-radius: var(--r);
+  }
+  .callout--decision { border-left: 3px solid var(--teal); border-radius: 0 var(--r) var(--r) 0; }
+  .callout--insight { border-left: 3px solid var(--ochre); border-radius: 0 var(--r) var(--r) 0; }
+  .callout p:last-child, .callout ul:last-child { margin-bottom: 0; }
+  .callout ul { padding-left: 1.1rem; margin: 0; }
+  .callout li { margin-bottom: 0.4rem; }
+  .callout li::marker { color: var(--coral); }
+  .callout__title {
+    font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 0.6rem;
+  }
+  .callout--decision .callout__title { color: var(--teal); }
+
+  /* One-sentence insights become serif pull quotes */
+  .callout--quote {
+    background: transparent; border: 0; border-left: 2px solid var(--coral); border-radius: 0;
+    padding: 0.25rem 0 0.25rem 1.5rem;
+  }
+  .callout--quote p:not(.callout__title) {
+    font-family: var(--font-display); font-style: italic;
+    font-size: clamp(1.6rem, 3vw, 2rem); line-height: 1.2; letter-spacing: -0.01em; color: var(--ink);
+  }
+
+  .mini-cards { list-style: none; padding: 0; margin: 1.75rem 0; display: grid; gap: 1rem; }
+  @media (min-width: 640px) { .mini-cards { grid-template-columns: 1fr 1fr; } }
+  .mini-card {
+    background: var(--card); border: 1px solid rgba(29, 43, 52, 0.15); border-radius: var(--r);
+    padding: 1.15rem 1.25rem 1.3rem;
+    transition: box-shadow 0.3s var(--ease), transform 0.3s var(--ease);
+  }
+  .mini-card:hover { box-shadow: var(--lift); transform: translate(-2px, -2px); }
+  .mini-card h3 { font-size: 1.02rem; margin-bottom: 0.3rem; }
+  .mini-card p { margin: 0; font-size: 0.95rem; color: var(--muted); }
+  .mini-card__num { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.1em; color: var(--coral-deep); }
+
+  .figures { margin: 2.25rem 0; display: grid; gap: 1.5rem; }
+  @media (min-width: 640px) { .figures--grid { grid-template-columns: 1fr 1fr; } }
+  figure { margin: 0; }
+  figcaption { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.04em; color: var(--muted); margin-top: 0.7rem; }
+
+  .btn--disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn--disabled:hover { background: transparent; color: var(--ink); transform: none; }
+
+  /* Walkthrough: horizontal swipe on mobile, vertical steps on desktop */
+  .walkthrough { margin: 2.25rem 0; }
+  .walkthrough__hint { font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); margin-bottom: 0.5rem; }
+  .walkthrough__list {
+    list-style: none; margin: 0 calc(var(--gutter) * -1); padding: 0.5rem var(--gutter) 1.25rem;
+    display: grid; grid-auto-flow: column; grid-auto-columns: 85%;
+    gap: 1.25rem; overflow-x: auto; scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+  }
+  .walkthrough__step { scroll-snap-align: center; }
+  .walkthrough__caption h3 { font-size: 1.05rem; margin: 0.2rem 0 0.35rem; }
+  .walkthrough__caption p:last-child { margin: 0; color: var(--muted); }
+  .walkthrough__num {
+    font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--coral-deep); margin: 1.1rem 0 0;
+  }
+
+  @media (min-width: 900px) {
+    .walkthrough__hint { display: none; }
+    .walkthrough__list {
+      grid-auto-flow: row; grid-auto-columns: auto;
+      margin: 0; padding: 0; overflow: visible; gap: 3.5rem;
+    }
+    .walkthrough__step {
+      display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+      gap: 2.25rem; align-items: center;
+    }
+    .walkthrough__caption { border-top: 1px solid var(--ink); padding-top: 0.9rem; }
+    .walkthrough__num { margin-top: 0; }
+  }
+
+  /* Headline numbers */
+  .stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 1.5rem; margin: 2rem 0; }
+  @media (min-width: 700px) { .stats { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  .stat { display: flex; flex-direction: column-reverse; justify-content: flex-end; padding: 1rem 0 1.25rem; border-top: 1px solid var(--ink); }
+  .stat__value { margin: 0 0 0.4rem; font-family: var(--font-display); font-size: clamp(2.4rem, 5vw, 3.2rem); line-height: 1; color: var(--coral); }
+  .stat__label { font-size: 0.85rem; line-height: 1.45; color: var(--muted); }
+
+  /* Results table */
+  .table-wrap { margin: 2rem 0; overflow-x: auto; border: 1px solid rgba(29, 43, 52, 0.15); border-radius: var(--r); background: var(--card); }
+  .table { width: 100%; border-collapse: collapse; font-size: 0.92rem; min-width: 30rem; }
+  .table caption { caption-side: top; text-align: left; padding: 1rem 1.1rem 0.25rem; font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+  .table th, .table td { padding: 0.75rem 1.1rem; text-align: left; vertical-align: top; border-bottom: 1px solid rgba(29, 43, 52, 0.1); }
+  .table thead th { font-family: var(--font-mono); font-size: 0.7rem; font-weight: 400; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .table tbody th { font-weight: 600; }
+  .table tbody tr:last-child th, .table tbody tr:last-child td { border-bottom: 0; }
+
+  .reflection {
+    margin: 1rem 0;
+    padding: 2.25rem 1.5rem;
+    border: 1px dashed var(--line);
+    border-radius: var(--r);
+    text-align: center;
+    background: var(--card);
+  }
+  .reflection__title { font-family: var(--font-display); font-style: italic; font-size: 1.8rem; margin: 0; color: var(--muted); }
+  .reflection__prompts {
+    text-align: left; margin-top: 1.25rem; padding: 1rem 1.25rem;
+    background: var(--todo-bg); border-radius: var(--r-sm); color: var(--todo-ink); font-size: 0.95rem;
+  }
+  .reflection__prompts ul { margin: 0; padding-left: 1.2rem; }
+</style>

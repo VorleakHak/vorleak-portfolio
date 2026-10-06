@@ -1,0 +1,76 @@
+---
+// Shows the real image if it exists in /public, otherwise a clearly labeled placeholder block.
+import type { Media } from '../content';
+import { publicFileExists, url, isTodo } from '../lib/utils';
+
+interface Props extends Media {
+  eager?: boolean;
+  class?: string;
+}
+const { src, label, alt, ratio = '16 / 10', frame = 'none', fit = 'cover', eager = false, class: cls } = Astro.props;
+const exists = publicFileExists(src);
+const altText = isTodo(alt) ? label : alt;
+---
+<div class:list={['media', `media--${frame}`, `media--${fit}`, cls]} style={`--ratio:${ratio}`}>
+  {exists ? (
+    fit === 'contain' ? (
+      <a class="media__zoom" href={url(src)} target="_blank" rel="noopener" aria-label={`${altText} (view larger)`}>
+        <img src={url(src)} alt={altText} loading={eager ? 'eager' : 'lazy'} decoding="async" />
+        <span class="media__zoom-hint" aria-hidden="true">View full size ↗</span>
+      </a>
+    ) : (
+      <img src={url(src)} alt={altText} loading={eager ? 'eager' : 'lazy'} decoding="async" />
+    )
+  ) : (
+    <div class="media__placeholder" role="img" aria-label={`Image placeholder: ${label}`}>
+      <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="9" cy="9" r="2"/><path d="m21 15-4.5-4.5L5 21"/></svg>
+      <span class="media__label">{label}</span>
+      <span class="media__path">{src}</span>
+    </div>
+  )}
+</div>
+
+<style>
+  .media {
+    aspect-ratio: var(--ratio);
+    border-radius: var(--r);
+    overflow: hidden;
+    background: var(--muted-bg);
+  }
+  .media img { width: 100%; height: 100%; object-fit: cover; }
+  /* "contain": show the whole image (documents, CAD renders) on a white mat */
+  .media--contain { background: #fff; border: 1px solid var(--line); }
+  .media--contain img { object-fit: contain; padding: 0.75rem; }
+  .media__zoom { position: relative; display: block; width: 100%; height: 100%; cursor: zoom-in; }
+  .media__zoom-hint {
+    position: absolute; right: 0.6rem; bottom: 0.6rem;
+    font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.06em;
+    background: var(--ink); color: var(--bg); padding: 0.3rem 0.55rem; border-radius: 4px;
+    opacity: 0; transition: opacity 0.2s;
+  }
+  .media__zoom:hover .media__zoom-hint, .media__zoom:focus-visible .media__zoom-hint { opacity: 1; }
+  @media (hover: none) { .media__zoom-hint { opacity: 1; } }
+  .media--tablet {
+    border: 9px solid var(--ink);
+    border-radius: 20px;
+    box-shadow: var(--lift);
+  }
+  .media--tablet .media__placeholder { border-radius: 11px; border: 0; }
+  .media__placeholder {
+    position: relative;
+    height: 100%;
+    display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-end;
+    gap: 0.25rem; padding: 1.1rem 1.2rem; text-align: left;
+    color: var(--muted);
+    background-color: #f1ede6;
+    background-image:
+      linear-gradient(rgba(29, 43, 52, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(29, 43, 52, 0.05) 1px, transparent 1px);
+    background-size: 28px 28px;
+    border: 1px solid var(--line);
+    border-radius: inherit;
+  }
+  .media__placeholder svg { position: absolute; top: 1.1rem; right: 1.1rem; opacity: 0.5; }
+  .media__label { font-weight: 600; color: var(--ink); line-height: 1.35; font-size: 0.92rem; }
+  .media__path { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.02em; word-break: break-all; }
+</style>

@@ -1,0 +1,7 @@
+---
+// Renders a string from content.ts. Strings starting with "TODO" render as a loud placeholder.
+import { isTodo } from '../lib/utils';
+interface Props { text?: string }
+const { text = 'TODO' } = Astro.props;
+---
+{isTodo(text) ? <span class="todo">{text.trim().startsWith('TODO') ? text : `TODO: ${text}`}</span> : <Fragment set:text={text} />}

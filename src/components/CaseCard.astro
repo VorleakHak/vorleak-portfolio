@@ -1,0 +1,104 @@
+---
+import type { CaseStudy } from '../content';
+import Media from './Media.astro';
+import { url } from '../lib/utils';
+
+interface Props { study: CaseStudy; index: number; featured?: boolean; compact?: boolean }
+const { study, index, featured = false, compact = false } = Astro.props;
+const href = url(`/work/${study.slug}`);
+const num = String(index + 1).padStart(2, '0');
+// Map each case study's theme to a design-system accent (used for the swatch + hover rule)
+const accent = { tangerine: 'var(--coral)', sky: 'var(--teal)', lilac: 'var(--ink)', butter: 'var(--ochre)' }[study.theme];
+---
+<article class:list={['case', { 'case--featured': featured, 'case--flip': !compact && index % 2 === 1, 'case--compact': compact }]} style={`--case-accent:${accent}`}>
+  <div class="case__body">
+    <p class="case__meta">
+      <span class="case__swatch" aria-hidden="true"></span>
+      <span>{compact ? study.shortTitle : `${num} / ${study.shortTitle}`}</span>
+      {study.badge && <span class="case__badge">{study.badge}</span>}
+    </p>
+    <h3 class="case__title">
+      <a href={href} class="case__link">{study.title}</a>
+    </h3>
+    <p class="case__one">{study.oneLiner}</p>
+    <ul class="tags" aria-label="What this shows">
+      {study.tags.map((t) => <li>{t}</li>)}
+    </ul>
+    <p class="case__cta" aria-hidden="true">Read the case study <span class="case__arrow">↗</span></p>
+  </div>
+  {!compact && (
+    <div class="case__media">
+      <Media {...study.cover} ratio={study.cover.ratio ?? (featured ? '5 / 4' : '4 / 3')} eager={featured} />
+    </div>
+  )}
+</article>
+
+<style>
+  .case {
+    position: relative;
+    display: grid; gap: 1.75rem;
+    padding: clamp(1.25rem, 3vw, 2.25rem);
+    background: var(--card);
+    border: 1px solid rgba(29, 43, 52, 0.15);
+    border-radius: var(--r);
+    transition: box-shadow 0.3s var(--ease), transform 0.3s var(--ease);
+  }
+  .case::before {
+    content: ''; position: absolute; left: -1px; right: -1px; top: -1px; height: 3px;
+    background: var(--case-accent); border-radius: var(--r) var(--r) 0 0;
+    transform: scaleX(0); transform-origin: left; transition: transform 0.45s var(--ease);
+  }
+  .case:hover, .case:focus-within { box-shadow: var(--lift); transform: translate(-2px, -2px); }
+  .case:hover::before, .case:focus-within::before { transform: scaleX(1); }
+
+  .case__media { order: -1; }
+  .case--compact { padding: 1.5rem 1.6rem 1.6rem; }
+  .case--compact .case__meta { margin-bottom: 1rem; }
+  .case--compact .case__title { font-size: clamp(1.8rem, 3vw, 2.2rem); }
+  .case--compact .case__one { font-size: 0.97rem; }
+  .case--compact .case__cta { padding-top: 1rem; }
+  .case__body { display: flex; flex-direction: column; min-width: 0; }
+
+  .case__meta {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem;
+    margin: 0 0 1.5rem;
+    font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--muted);
+  }
+  .case__swatch { width: 0.6rem; height: 0.6rem; background: var(--case-accent); }
+  .case__badge {
+    background: var(--ochre); color: var(--ink);
+    padding: 0.15rem 0.55rem; border-radius: 999px; letter-spacing: 0.1em;
+  }
+
+  .case__title {
+    font-family: var(--font-display); font-weight: 400;
+    font-size: clamp(2.2rem, 4.2vw, 3.2rem); line-height: 0.98; letter-spacing: -0.02em;
+    margin: 0 0 1rem; max-width: 18ch;
+  }
+  .case__link { color: var(--ink); text-decoration: none; }
+  /* The whole card is clickable, but there's only one link in the a11y tree */
+  .case__link::after { content: ''; position: absolute; inset: 0; border-radius: var(--r); }
+  .case__link:focus-visible { outline: none; box-shadow: none; }
+  .case:has(.case__link:focus-visible) { outline: 3px solid var(--ochre); outline-offset: 4px; box-shadow: 0 0 0 2px var(--ink); }
+  .case__link:hover { color: var(--ink); }
+
+  .case__one { color: var(--muted); max-width: 36rem; margin-bottom: 1.5rem; }
+  .case__cta {
+    margin: auto 0 0; padding-top: 1.75rem;
+    font-size: 0.9rem; font-weight: 600;
+  }
+  .case__cta { text-decoration: underline; text-decoration-color: var(--coral); text-decoration-thickness: 2px; text-underline-offset: 0.45em; }
+  .case__arrow { display: inline-block; transition: transform 0.3s var(--ease); }
+  .case:hover .case__arrow { transform: translate(3px, -3px); }
+
+  @media (min-width: 900px) {
+    .case:not(.case--compact) { grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr); gap: 3rem; align-items: stretch; }
+    .case__media { order: 0; }
+    .case.case--featured { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+    .case.case--flip { grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); }
+    .case--flip .case__media { order: -1; }
+    .case--featured .case__title { font-size: clamp(3rem, 5vw, 4.5rem); }
+    .case--featured .case__one { font-size: 1.12rem; }
+  }
+</style>

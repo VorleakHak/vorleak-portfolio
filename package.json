@@ -1,0 +1,16 @@
+{
+  "name": "vorleak-portfolio",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Portfolio site for Vorleak Hak",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "todos": "node scripts/list-todos.mjs"
+  },
+  "dependencies": {
+    "astro": "^7.3.5"
+  }
+}

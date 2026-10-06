@@ -1,0 +1,23 @@
+---
+import { site } from '../content';
+const year = new Date().getFullYear();
+---
+<footer class="site-footer">
+  <div class="container site-footer__inner">
+    <span>© {year} {site.name} · Designed and built by me</span>
+    <span>Built for WCAG 2.1 AA · keyboard friendly · respects reduced motion</span>
+    <a href="#main">Back to top ↑</a>
+  </div>
+</footer>
+
+<style>
+  .site-footer { background: var(--ink); color: var(--paper-on-ink); }
+  .site-footer__inner {
+    display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.75rem 2rem;
+    padding-block: 1.5rem 2rem;
+    border-top: 1px solid rgba(248, 246, 241, 0.16);
+    font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.02em;
+  }
+  .site-footer a { color: var(--paper-on-ink); text-decoration: none; }
+  .site-footer a:hover { color: var(--bg); }
+</style>

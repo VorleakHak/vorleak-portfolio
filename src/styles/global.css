@@ -1,0 +1,257 @@
+/* =========================================================
+   Design tokens: from the Vorleak Hak Portfolio design system
+   (Product-Portfolio-Hub/artifacts/vorleak-hak-portfolio-design-system/tokens.json)
+
+   Contrast notes (WCAG 2.1 AA):
+   - --ink on --bg ............ 13.9:1
+   - --muted on --bg .......... 5.8:1  (system's #5f707c darkened slightly so it
+                                        also passes on the teal-tinted Skills band)
+   - --coral (#da5f44) is 3.4:1 on --bg → large display text + decoration only
+   - --coral-deep on --bg ..... 4.7:1  → small text, buttons (paper text on it 4.7:1)
+   - --teal on --bg ........... 5.1:1
+   - --ochre is decoration only; text on ochre is always --ink
+   ========================================================= */
+:root {
+  /* Surfaces */
+  --bg: #f8f6f1;            /* warm paper */
+  --card: #fcfbf8;
+  --muted-bg: #ece7df;
+  --line: #d9d2c9;
+  --hair: rgba(29, 43, 52, 0.14);
+
+  /* Ink */
+  --ink: #1d2b34;           /* deep blue-gray */
+  --ink-2: #30424f;
+  --muted: #52626e;
+  --paper-on-ink: rgba(248, 246, 241, 0.72);
+
+  /* Accents */
+  --coral: #da5f44;
+  --coral-deep: #bc4a2f;
+  --teal: #3c726e;
+  --ochre: #ebc766;
+
+  /* Placeholder / TODO */
+  --todo-bg: #fff6cc;
+  --todo-line: #b45309;
+  --todo-ink: #6b3300;
+
+  /* Type */
+  --font-display: 'Instrument Serif', Georgia, serif;
+  --font-body: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'DM Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Shape + spacing (4px base step, 8px radius) */
+  --r: 8px;
+  --r-sm: 6px;
+  --gutter: 1.25rem;
+  --max: 1280px;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --lift: 8px 8px 0 rgba(29, 43, 52, 0.08);
+}
+
+@media (min-width: 640px) { :root { --gutter: 2rem; } }
+@media (min-width: 1024px) { :root { --gutter: 3rem; } }
+
+/* =========================================================
+   Base
+   ========================================================= */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-padding-top: 5.5rem;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(235, 199, 102, 0.16), transparent 25rem),
+    var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+::selection { background: rgba(218, 95, 68, 0.22); color: var(--ink); }
+
+h1, h2 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.5em;
+  text-wrap: balance;
+}
+h1 { font-size: clamp(3rem, 8vw, 6.5rem); }
+h2 { font-size: clamp(2.6rem, 6vw, 4.6rem); }
+h1 em, h2 em { font-style: italic; }
+h3, h4 {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 1.1rem;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  margin: 0 0 0.5em;
+}
+
+p { margin: 0 0 1em; text-wrap: pretty; }
+img { max-width: 100%; height: auto; display: block; }
+
+a { color: var(--ink); text-underline-offset: 0.22em; text-decoration-thickness: 1px; text-decoration-color: var(--line); }
+a:hover { color: var(--coral-deep); text-decoration-color: currentColor; }
+
+/* Ochre focus ring from the system, paired with an ink ring so it also passes 3:1 on paper */
+:focus-visible {
+  outline: 3px solid var(--ochre);
+  outline-offset: 4px;
+  box-shadow: 0 0 0 2px var(--ink);
+  border-radius: 2px;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0);
+  white-space: nowrap; border: 0;
+}
+
+.skip-link {
+  position: absolute;
+  left: 1rem; top: -4rem;
+  z-index: 100;
+  background: var(--ink);
+  color: var(--bg);
+  padding: 0.75rem 1rem;
+  border-radius: var(--r-sm);
+  font-weight: 600;
+}
+.skip-link:focus { top: 1rem; color: var(--bg); }
+
+.container {
+  width: 100%;
+  max-width: var(--max);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.section { padding-block: clamp(5rem, 11vw, 8rem); }
+
+/* Mono eyebrow label */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--coral-deep);
+  margin: 0 0 1.5rem;
+}
+.eyebrow--muted { color: var(--muted); }
+.eyebrow--teal { color: var(--teal); }
+
+.lead { font-size: 1.15rem; line-height: 1.75; color: var(--muted); max-width: 40rem; }
+
+/* Two-column section header: eyebrow left, headline right */
+.section-head { display: grid; gap: 0.5rem 3rem; margin-bottom: clamp(2.5rem, 6vw, 4rem); }
+@media (min-width: 1024px) { .section-head { grid-template-columns: minmax(0, 0.6fr) minmax(0, 1.4fr); } }
+.section-head h2 { margin-bottom: 0.35em; }
+.section-head .lead { margin: 0; }
+
+/* Subtle 28px paper grid: for focal sections only */
+.paper-grid {
+  background-image:
+    linear-gradient(rgba(29, 43, 52, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(29, 43, 52, 0.035) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* Hand-drawn-feeling ochre highlighter for italic phrases in the hero */
+.highlight em {
+  background: linear-gradient(transparent 58%, rgba(235, 199, 102, 0.7) 58%, rgba(235, 199, 102, 0.7) 90%, transparent 90%);
+  padding-inline: 0.06em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+/* =========================================================
+   Buttons + tags
+   ========================================================= */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 48px;
+  padding: 0.75rem 1.35rem;
+  border-radius: 999px;
+  border: 1px solid rgba(29, 43, 52, 0.22);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.92rem;
+  text-decoration: none;
+  color: var(--ink);
+  background: transparent;
+  transition: transform 0.25s var(--ease), background 0.2s, color 0.2s, border-color 0.2s;
+  cursor: pointer;
+}
+.btn:hover { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.btn--primary { background: var(--coral-deep); border-color: var(--coral-deep); color: var(--bg); }
+.btn--primary:hover { background: var(--coral-deep); color: var(--bg); transform: translateY(-3px); }
+.btn .arrow { display: inline-block; transition: transform 0.25s var(--ease); }
+.btn:hover .arrow { transform: translateY(2px); }
+
+.tags { display: flex; flex-wrap: wrap; gap: 0.5rem; list-style: none; margin: 0; padding: 0; }
+.tags li {
+  border: 1px solid rgba(29, 43, 52, 0.16);
+  border-radius: 999px;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+/* =========================================================
+   TODO placeholder (inline): intentionally loud
+   ========================================================= */
+.todo {
+  display: inline-block;
+  background: var(--todo-bg);
+  color: var(--todo-ink);
+  border: 1.5px dashed var(--todo-line);
+  border-radius: var(--r-sm);
+  padding: 0.05rem 0.45rem;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-style: normal;
+  line-height: 1.5;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* =========================================================
+   Motion: 700ms fade-up on entry, 80ms stagger
+   ========================================================= */
+.fade-up { animation: fade-up 0.7s var(--ease) both; }
+.delay-1 { animation-delay: 0.08s; }
+.delay-2 { animation-delay: 0.16s; }
+.delay-3 { animation-delay: 0.24s; }
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-up { animation: none; }
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
